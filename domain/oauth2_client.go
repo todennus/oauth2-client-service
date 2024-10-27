@@ -81,7 +81,7 @@ func (domain *OAuth2ClientDomain) ValidateClient(
 	}
 
 	switch confidentialRequirement {
-	case enumdef.RequireConfidential:
+	case enumdef.CRTRequire:
 		if !client.IsConfidential {
 			return fmt.Errorf("%w: require a confidential client", ErrClientInvalid)
 		}
@@ -90,7 +90,7 @@ func (domain *OAuth2ClientDomain) ValidateClient(
 			return err
 		}
 
-	case enumdef.DependOnClientConfidential:
+	case enumdef.CRTDependOnType:
 		if client.IsConfidential {
 			if err := ValidatePassword(client.HashedSecret, clientSecret); err != nil {
 				return err

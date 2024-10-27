@@ -6,6 +6,7 @@ import (
 	"github.com/todennus/oauth2-client-service/domain"
 	"github.com/todennus/oauth2-client-service/infras/database/model"
 	"github.com/todennus/shared/errordef"
+	"github.com/xybor-x/snowflake"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +23,7 @@ func (repo *OAuth2ClientRepository) Create(ctx context.Context, client *domain.O
 	return errordef.ConvertGormError(repo.db.WithContext(ctx).Create(&model).Error)
 }
 
-func (repo *OAuth2ClientRepository) GetByID(ctx context.Context, clientID int64) (*domain.OAuth2Client, error) {
+func (repo *OAuth2ClientRepository) GetByID(ctx context.Context, clientID snowflake.ID) (*domain.OAuth2Client, error) {
 	model := model.OAuth2ClientModel{}
 	if err := repo.db.WithContext(ctx).Take(&model, "id=?", clientID).Error; err != nil {
 		return nil, errordef.ConvertGormError(err)
