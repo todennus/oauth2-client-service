@@ -115,7 +115,7 @@ func (usecase *OAuth2ClientUsecase) GetByID(
 	ctx context.Context,
 	req *dto.OAuth2ClientGetByIDRequest,
 ) (*dto.OAuth2ClientGetByIDResponse, error) {
-	client, err := usecase.oauth2ClientRepo.GetByID(ctx, req.ClientID.Int64())
+	client, err := usecase.oauth2ClientRepo.GetByID(ctx, req.ClientID)
 	if err != nil {
 		if errors.Is(err, errordef.ErrNotFound) {
 			return nil, xerror.Enrich(errordef.ErrNotFound, "not found client")
@@ -135,7 +135,7 @@ func (usecase *OAuth2ClientUsecase) Validate(
 		return nil, xerror.Enrich(errordef.ErrRequestInvalid, "require client id")
 	}
 
-	client, err := usecase.oauth2ClientRepo.GetByID(ctx, req.ClientID.Int64())
+	client, err := usecase.oauth2ClientRepo.GetByID(ctx, req.ClientID)
 	if err != nil {
 		if errors.Is(err, errordef.ErrNotFound) {
 			return nil, xerror.Enrich(errordef.ErrNotFound, "not found client")
