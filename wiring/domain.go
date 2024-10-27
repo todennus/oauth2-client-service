@@ -17,8 +17,8 @@ func InitializeDomains(ctx context.Context, config *config.Config) (*Domains, er
 	domains := &Domains{}
 
 	domains.OAuth2ClientDomain, err = domain.NewOAuth2ClientDomain(
-		config.NewSnowflakeNode(),
-		config.Variable.OAuth2.ClientSecretLength,
+		config.SnowflakeNode,
+		config.Variable.OAuth2Client.SecretLength,
 	)
 	if err != nil {
 		return nil, err
