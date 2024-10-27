@@ -148,7 +148,7 @@ func (usecase *OAuth2ClientUsecase) Validate(
 		client, req.ClientID, req.ClientSecret, scopedef.Engine.ParseScopes(req.Scope), req.ConfidentialRequirement)
 	if err != nil {
 		return nil, errordef.DomainWrapper.Event(err, "failed-to-validate-client").
-			Enrich(errordef.ErrUnauthenticated).If(domain.ErrMismatchedPassword).
+			Enrich(errordef.ErrCredentialsInvalid).If(domain.ErrMismatchedPassword).
 			Enrich(errordef.ErrOAuth2ClientInvalid).If(domain.ErrClientInvalid).
 			Enrich(errordef.ErrOAuth2ScopeInvalid).If(domain.ErrScopeExceed).
 			Error()
