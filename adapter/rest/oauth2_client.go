@@ -92,7 +92,6 @@ func (a *OAuth2ClientAdapter) Create() http.HandlerFunc {
 // @Param body body dto.OAuth2ClientCreateFirstRequest true "Client Information"
 // @Success 201 {object} response.SwaggerSuccessResponse[dto.OAuth2ClientCreateFirstResponse] "Create client successfully"
 // @Failure 400 {object} response.SwaggerBadRequestErrorResponse "Bad request"
-// @Failure 401 {object} response.SwaggerUnauthorizedErrorResponse "unauthorized"
 // @Failure 403 {object} response.SwaggerForbiddenErrorResponse "Forbidden"
 // @Failure 404 {object} response.SwaggerNotFoundErrorResponse "API not found"
 // @Router /oauth2_clients/first [post]
@@ -108,9 +107,8 @@ func (a *OAuth2ClientAdapter) CreateFirst() http.HandlerFunc {
 
 		resp, err := a.oauth2ClientUsecase.CreateFirst(ctx, req.To())
 		response.NewRESTResponseHandler(ctx, dto.NewOauth2ClientCreateFirstResponse(resp), err).
-			Map(http.StatusForbidden, errordef.ErrForbidden).
+			Map(http.StatusForbidden, errordef.ErrForbidden, errordef.ErrCredentialsInvalid).
 			Map(http.StatusNotFound, errordef.ErrNotFound).
-			Map(http.StatusUnauthorized, errordef.ErrUnauthenticated).
 			WithDefaultCode(http.StatusCreated).
 			WriteHTTPResponse(ctx, w)
 	}

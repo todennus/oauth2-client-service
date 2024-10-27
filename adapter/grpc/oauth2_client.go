@@ -42,7 +42,7 @@ func (s *OAuth2ClientServer) Validate(ctx context.Context, req *pbdto.OAuth2Clie
 
 	return response.NewGRPCResponseHandler(ctx, &empty.Empty{}, err).
 		Map(codes.InvalidArgument, errordef.ErrRequestInvalid).
-		Map(codes.Unauthenticated, errordef.ErrUnauthenticated).
-		Map(codes.Unauthenticated, errordef.ErrOAuth2ScopeInvalid, errordef.ErrOAuth2ClientInvalid).
+		Map(codes.PermissionDenied, errordef.ErrCredentialsInvalid).
+		Map(codes.PermissionDenied, errordef.ErrOAuth2ScopeInvalid, errordef.ErrOAuth2ClientInvalid).
 		Map(codes.NotFound, errordef.ErrNotFound).Finalize(ctx)
 }
