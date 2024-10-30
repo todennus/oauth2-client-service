@@ -3,12 +3,12 @@ package grpc
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/todennus/oauth2-client-service/adapter/abstraction"
 	"github.com/todennus/oauth2-client-service/adapter/grpc/conversion"
 	"github.com/todennus/proto/gen/service"
 	pbdto "github.com/todennus/proto/gen/service/dto"
 	"github.com/todennus/shared/errordef"
+	"github.com/todennus/shared/interceptor"
 	"github.com/todennus/shared/response"
 	"google.golang.org/grpc/codes"
 )
@@ -28,6 +28,10 @@ func NewOAuth2ClientServer(userUsecase abstraction.OAuth2ClientUsecase) *OAuth2C
 }
 
 func (s *OAuth2ClientServer) GetByID(ctx context.Context, req *pbdto.OAuth2ClientGetByIDRequest) (*pbdto.OAuth2ClientGetByIDResponse, error) {
+	if err := interceptor.RequireAuthentication(ctx); err != nil {
+		return nil, err
+	}
+
 	ucreq := conversion.NewUsecaseOAuth2GetByIDRequest(req)
 	resp, err := s.oauth2ClientUsecase.GetByID(ctx, ucreq)
 
@@ -36,13 +40,17 @@ func (s *OAuth2ClientServer) GetByID(ctx context.Context, req *pbdto.OAuth2Clien
 		Map(codes.NotFound, errordef.ErrNotFound).Finalize(ctx)
 }
 
-func (s *OAuth2ClientServer) Validate(ctx context.Context, req *pbdto.OAuth2ClientValidateRequest) (*empty.Empty, error) {
-	ucreq := conversion.NewUsecaseOAuth2ValidateRequest(req)
-	_, err := s.oauth2ClientUsecase.Validate(ctx, ucreq)
+func (s *OAuth2ClientServer) Validate(ctx context.Context, req *pbdto.OAuth2ClientValidateRequest) (*pbdto.OAuth2ClientValidateResponse, error) {
+	if err := interceptor.RequireAuthentication(ctx); err != nil {
+		return nil, err
+	}
 
-	return response.NewGRPCResponseHandler(ctx, &empty.Empty{}, err).
+	ucreq := conversion.NewUsecaseOAuth2ValidateRequest(req)
+	resp, err := s.oauth2ClientUsecase.Validate(ctx, ucreq)
+
+	return response.NewGRPCResponseHandler(ctx, conversion.NewUsecaseOAuth2ValidateResponse(resp), err).
 		Map(codes.InvalidArgument, errordef.ErrRequestInvalid).
 		Map(codes.PermissionDenied, errordef.ErrCredentialsInvalid).
-		Map(codes.PermissionDenied, errordef.ErrOAuth2ScopeInvalid, errordef.ErrOAuth2ClientInvalid).
-		Map(codes.NotFound, errordef.ErrNotFound).Finalize(ctx)
+		Map(codes.NotFound, errordef.ErrNotFound).
+		Finalize(ctx)
 }

@@ -8,7 +8,6 @@ import (
 )
 
 type UserRepository interface {
-	GetByID(ctx context.Context, userID snowflake.ID) (*domain.User, error)
 	Validate(ctx context.Context, username string, password string) (*domain.User, error)
 }
 

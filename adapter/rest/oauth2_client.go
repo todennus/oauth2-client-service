@@ -26,11 +26,10 @@ func (a *OAuth2ClientAdapter) Router(r chi.Router) {
 	r.Get("/{client_id}", middleware.RequireAuthentication(a.Get()))
 
 	r.Post("/", middleware.RequireAuthentication(a.Create()))
-	r.Post("/first", a.CreateFirst())
 }
 
 // @Summary Get oauth2 client by id
-// @Description Get OAuth2 Client information by ClientID. <br>
+// @Description Get OAuth2 Client information by ClientID.
 // @Tags OAuth2 Client
 // @Produce json
 // @Param id path string true "ClientID"
@@ -42,14 +41,14 @@ func (a *OAuth2ClientAdapter) Get() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		req, err := xhttp.ParseHTTPRequest[dto.OAuth2ClientGetRequest](r)
+		req, err := xhttp.ParseHTTPRequest[dto.OAuth2ClientGetByIDRequest](r)
 		if err != nil {
 			response.RESTWriteAndLogInvalidRequestError(ctx, w, err)
 			return
 		}
 
 		resp, err := a.oauth2ClientUsecase.GetByID(ctx, req.To())
-		response.NewRESTResponseHandler(ctx, dto.NewOAuth2ClientGetResponse(resp), err).
+		response.NewRESTResponseHandler(ctx, dto.NewOAuth2ClientGetByIDResponse(resp), err).
 			Map(http.StatusBadRequest, errordef.ErrRequestInvalid).
 			Map(http.StatusNotFound, errordef.ErrOAuth2ClientInvalid).
 			WriteHTTPResponse(ctx, w)
@@ -57,14 +56,18 @@ func (a *OAuth2ClientAdapter) Get() http.HandlerFunc {
 }
 
 // @Summary Create oauth2 client
-// @Description Create an new OAuth2 Client. If the `is_confidential` field is true, a secret is issued. Please carefully store this secret in a confidential place. This secret will never be retrieved by anyway. <br>
-// @Description Require scope `[todennus]create:client`.
+// @Description Create an new OAuth2 Client. <br>
+// @Description If the `is_confidential` field is true, a secret is issued. Please carefully store this secret in a confidential place. This secret will never be retrieved by anyway. <br>
+// @Description Require `todennus/create:client` or `todennus/admin:create:client` scope.
 // @Tags OAuth2 Client
+// @Security OAuth2Application[todennus/create:client]
+// @Security OAuth2Application[todennus/admin:create:client]
 // @Accept json
 // @Produce json
 // @Param body body dto.OAuth2ClientCreateRequest true "Client Information"
 // @Success 201 {object} response.SwaggerSuccessResponse[dto.OAuth2ClientCreateResponse] "Create client successfully"
 // @Failure 400 {object} response.SwaggerBadRequestErrorResponse "Bad request"
+// @Failure 403 {object} response.SwaggerForbiddenErrorResponse "Forbidden"
 // @Router /oauth2_clients [post]
 func (a *OAuth2ClientAdapter) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -78,37 +81,8 @@ func (a *OAuth2ClientAdapter) Create() http.HandlerFunc {
 
 		resp, err := a.oauth2ClientUsecase.Create(ctx, req.To())
 		response.NewRESTResponseHandler(ctx, dto.NewOauth2ClientCreateResponse(resp), err).
-			WithDefaultCode(http.StatusCreated).
-			WriteHTTPResponse(ctx, w)
-	}
-}
-
-// @Summary Create the first oauth2 client
-// @Description Create the first OAuth2 Client (always a confidential Client). <br>
-// @Description Why this API? When todennus is started, there is no existed Client, we don't have any flow to authenticate a user (all authentication flows require a Client). This API is only valid if there is no existing Client and the user is administrator.
-// @Tags OAuth2 Client
-// @Accept json
-// @Produce json
-// @Param body body dto.OAuth2ClientCreateFirstRequest true "Client Information"
-// @Success 201 {object} response.SwaggerSuccessResponse[dto.OAuth2ClientCreateFirstResponse] "Create client successfully"
-// @Failure 400 {object} response.SwaggerBadRequestErrorResponse "Bad request"
-// @Failure 403 {object} response.SwaggerForbiddenErrorResponse "Forbidden"
-// @Failure 404 {object} response.SwaggerNotFoundErrorResponse "API not found"
-// @Router /oauth2_clients/first [post]
-func (a *OAuth2ClientAdapter) CreateFirst() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		req, err := xhttp.ParseHTTPRequest[dto.OAuth2ClientCreateFirstRequest](r)
-		if err != nil {
-			response.RESTWriteAndLogInvalidRequestError(ctx, w, err)
-			return
-		}
-
-		resp, err := a.oauth2ClientUsecase.CreateFirst(ctx, req.To())
-		response.NewRESTResponseHandler(ctx, dto.NewOauth2ClientCreateFirstResponse(resp), err).
-			Map(http.StatusForbidden, errordef.ErrForbidden, errordef.ErrCredentialsInvalid).
-			Map(http.StatusNotFound, errordef.ErrNotFound).
+			Map(http.StatusBadRequest, errordef.ErrRequestInvalid).
+			Map(http.StatusForbidden, errordef.ErrForbidden).
 			WithDefaultCode(http.StatusCreated).
 			WriteHTTPResponse(ctx, w)
 	}

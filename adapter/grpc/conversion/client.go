@@ -6,15 +6,17 @@ import (
 	pbdto "github.com/todennus/proto/gen/service/dto"
 	pbresource "github.com/todennus/proto/gen/service/dto/resource"
 	"github.com/todennus/shared/enumdef"
+	"github.com/todennus/x/conversion"
 	"github.com/xybor-x/snowflake"
 )
 
 func NewPbOAuth2Client(client *ucresource.OAuth2Client) *pbresource.OAuth2Client {
 	return &pbresource.OAuth2Client{
-		Id:           client.ClientID.Int64(),
-		Name:         client.Name,
-		OwnerId:      client.OwnerID.Int64(),
-		AllowedScope: client.AllowedScope,
+		Id:             client.ClientID.Int64(),
+		Name:           conversion.ConvertPointer(client.Name),
+		OwnerId:        conversion.ConvertPointer(client.OwnerID).Int64(),
+		IsAdmin:        conversion.ConvertPointer(client.IsAdmin),
+		IsConfidential: conversion.ConvertPointer(client.IsConfidential),
 	}
 }
 
@@ -22,8 +24,17 @@ func NewUsecaseOAuth2ValidateRequest(req *pbdto.OAuth2ClientValidateRequest) *uc
 	return &ucdto.OAuth2ClientValidateRequest{
 		ClientID:                snowflake.ID(req.ClientId),
 		ClientSecret:            req.ClientSecret,
-		ConfidentialRequirement: enumdef.ConfidentialRequirementTypeFromGRPC(req.Requirement),
-		Scope:                   req.RequestedScope,
+		ConfidentialRequirement: enumdef.OAuth2ClientConfidentialRequirementTypeFromGRPC(req.Requirement),
+	}
+}
+
+func NewUsecaseOAuth2ValidateResponse(resp *ucdto.OAuth2ClientValidateResponse) *pbdto.OAuth2ClientValidateResponse {
+	if resp == nil {
+		return nil
+	}
+
+	return &pbdto.OAuth2ClientValidateResponse{
+		Client: NewPbOAuth2Client(resp.OAuth2Client),
 	}
 }
 
