@@ -4,15 +4,15 @@ go 1.23.2
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0
-	github.com/golang/protobuf v1.5.4
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spf13/cobra v1.8.1
-	github.com/todennus/migration v0.1.1
-	github.com/todennus/proto v0.2.0
-	github.com/todennus/shared v0.5.0
-	github.com/todennus/x v0.2.0
+	github.com/todennus/migration v0.1.2
+	github.com/todennus/proto v0.3.0
+	github.com/todennus/shared v0.6.0
+	github.com/todennus/x v0.3.0
 	github.com/xybor-x/snowflake v1.0.0
 	golang.org/x/crypto v0.28.0
+	golang.org/x/oauth2 v0.22.0
 	google.golang.org/grpc v1.67.1
 	gorm.io/gorm v1.25.12
 )

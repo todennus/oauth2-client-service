@@ -8,19 +8,21 @@ import (
 
 type OAuth2ClientCreateRequest struct {
 	Name           string `json:"name" example:"Example Client"`
+	IsAdmin        bool   `json:"is_admin" example:"false"`
 	IsConfidential bool   `json:"is_confidential" example:"true"`
 }
 
 func (req OAuth2ClientCreateRequest) To() *dto.OAuth2ClientCreateRequest {
 	return &dto.OAuth2ClientCreateRequest{
 		Name:           req.Name,
+		IsAdmin:        req.IsAdmin,
 		IsConfidential: req.IsConfidential,
 	}
 }
 
 type OAuth2ClientCreateResponse struct {
 	*resource.OAuth2Client
-	ClientSecret string `json:"client_secret" example:"ElBacv..."`
+	ClientSecret string `json:"client_secret,omitempty" example:"ElBacv..."`
 }
 
 func NewOauth2ClientCreateResponse(resp *dto.OAuth2ClientCreateResponse) *OAuth2ClientCreateResponse {
@@ -34,41 +36,11 @@ func NewOauth2ClientCreateResponse(resp *dto.OAuth2ClientCreateResponse) *OAuth2
 	}
 }
 
-type OAuth2ClientCreateFirstRequest struct {
-	Username string `json:"username" example:"huykingsofm"`
-	Password string `json:"password" example:"s3Cr3tP@ssW0rD"`
-	Name     string `json:"name" example:"First Client"`
-}
-
-func (req *OAuth2ClientCreateFirstRequest) To() *dto.OAuth2ClientCreateFirstRequest {
-	return &dto.OAuth2ClientCreateFirstRequest{
-		Username: req.Username,
-		Password: req.Password,
-		Name:     req.Name,
-	}
-}
-
-type OAuth2ClientCreateFirstResponse struct {
-	*resource.OAuth2Client
-	ClientSecret string `json:"client_secret" example:"ElBacv..."`
-}
-
-func NewOauth2ClientCreateFirstResponse(resp *dto.OAuth2ClientCreateFirstResponse) *OAuth2ClientCreateFirstResponse {
-	if resp == nil {
-		return nil
-	}
-
-	return &OAuth2ClientCreateFirstResponse{
-		OAuth2Client: resource.NewOAuth2Client(resp.Client),
-		ClientSecret: resp.ClientSecret,
-	}
-}
-
-type OAuth2ClientGetRequest struct {
+type OAuth2ClientGetByIDRequest struct {
 	ClientID string `param:"client_id"`
 }
 
-func (req *OAuth2ClientGetRequest) To() *dto.OAuth2ClientGetByIDRequest {
+func (req *OAuth2ClientGetByIDRequest) To() *dto.OAuth2ClientGetByIDRequest {
 	clientID, err := snowflake.ParseString(req.ClientID)
 	if err != nil {
 		clientID = 0
@@ -79,16 +51,16 @@ func (req *OAuth2ClientGetRequest) To() *dto.OAuth2ClientGetByIDRequest {
 	}
 }
 
-type OAuth2ClientGetResponse struct {
+type OAuth2ClientGetByIDResponse struct {
 	*resource.OAuth2Client
 }
 
-func NewOAuth2ClientGetResponse(resp *dto.OAuth2ClientGetByIDResponse) *OAuth2ClientGetResponse {
+func NewOAuth2ClientGetByIDResponse(resp *dto.OAuth2ClientGetByIDResponse) *OAuth2ClientGetByIDResponse {
 	if resp == nil {
 		return nil
 	}
 
-	return &OAuth2ClientGetResponse{
+	return &OAuth2ClientGetByIDResponse{
 		OAuth2Client: resource.NewOAuth2Client(resp.Client),
 	}
 }

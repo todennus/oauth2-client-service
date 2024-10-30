@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/todennus/shared/enumdef"
-	"github.com/todennus/shared/scopedef"
-	"github.com/todennus/x/scope"
 	"github.com/todennus/x/xcrypto"
 	"github.com/todennus/x/xstring"
 	"github.com/xybor-x/snowflake"
@@ -21,10 +19,10 @@ const (
 type OAuth2Client struct {
 	ID             snowflake.ID
 	OwnerUserID    snowflake.ID
+	IsAdmin        bool
 	Name           string
 	HashedSecret   string
 	IsConfidential bool
-	AllowedScope   scope.Scopes
 	UpdatedAt      time.Time
 }
 
@@ -40,41 +38,45 @@ func NewOAuth2ClientDomain(
 	return &OAuth2ClientDomain{Snowflake: snowflake, ClientSecretLength: clientSecretLength}, nil
 }
 
-func (domain *OAuth2ClientDomain) New(ownerID snowflake.ID, name string, isConfidential bool) (*OAuth2Client, string, error) {
+func (domain *OAuth2ClientDomain) New(ownerID snowflake.ID, name string, isAdmin, isConfidential bool) (*OAuth2Client, string, error) {
 	err := domain.validateClientName(name)
 	if err != nil {
 		return nil, "", err
 	}
 
 	secret := ""
-	allowedScope := scopedef.Engine.New(scopedef.Actions.Read, scopedef.Resources).AsScopes()
 	hashedSecret := []byte{}
 	if isConfidential {
 		secret = xcrypto.RandString(domain.ClientSecretLength)
-		hashedSecret, err = HashPassword(secret)
-		if err != nil {
+		if hashedSecret, err = HashPassword(secret); err != nil {
 			return nil, "", err
 		}
-
-		allowedScope = scopedef.Engine.New(scopedef.Actions, scopedef.Resources).AsScopes()
 	}
 
 	return &OAuth2Client{
 		ID:             domain.Snowflake.Generate(),
 		Name:           name,
+		IsAdmin:        isAdmin,
 		OwnerUserID:    ownerID,
 		IsConfidential: isConfidential,
-		AllowedScope:   allowedScope,
 		HashedSecret:   string(hashedSecret),
 	}, secret, nil
+}
+
+func (domain *OAuth2ClientDomain) NewFirst(ownerID snowflake.ID, name string) (*OAuth2Client, string, error) {
+	client, secret, err := domain.New(ownerID, name, true, true)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return client, secret, nil
 }
 
 func (domain *OAuth2ClientDomain) ValidateClient(
 	client *OAuth2Client,
 	clientID snowflake.ID,
 	clientSecret string,
-	scope scope.Scopes,
-	confidentialRequirement enumdef.ConfidentialRequirementType,
+	confidentialRequirement enumdef.OAuth2ClientConfidentialRequirement,
 ) error {
 	if client.ID != clientID {
 		return errors.New("mismatched client id")
@@ -96,10 +98,6 @@ func (domain *OAuth2ClientDomain) ValidateClient(
 				return err
 			}
 		}
-	}
-
-	if !scope.LessThanOrEqual(client.AllowedScope) {
-		return ErrScopeExceed
 	}
 
 	return nil

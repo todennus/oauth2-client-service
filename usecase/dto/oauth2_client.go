@@ -11,6 +11,7 @@ import (
 
 type OAuth2ClientCreateRequest struct {
 	Name           string
+	IsAdmin        bool
 	IsConfidential bool
 }
 
@@ -27,10 +28,8 @@ func NewOAuth2ClientCreateResponse(client *domain.OAuth2Client, secret string) *
 }
 
 type OAuth2ClientCreateFirstRequest struct {
-	Username string
-	Password string
-
-	Name string
+	UserID     snowflake.ID
+	ClientName string
 }
 
 type OAuth2ClientCreateFirstResponse struct {
@@ -38,7 +37,7 @@ type OAuth2ClientCreateFirstResponse struct {
 	ClientSecret string
 }
 
-func NewOAuth2ClientCreateFirstResponse(ctx context.Context, client *domain.OAuth2Client, secret string) *OAuth2ClientCreateFirstResponse {
+func NewOAuth2ClientCreateFirstResponse(client *domain.OAuth2Client, secret string) *OAuth2ClientCreateFirstResponse {
 	return &OAuth2ClientCreateFirstResponse{
 		Client:       resource.NewOAuth2ClientWithoutFilter(client),
 		ClientSecret: secret,
@@ -55,7 +54,7 @@ type OAuth2ClientGetByIDResponse struct {
 
 func NewOAuth2ClientGetResponse(ctx context.Context, client *domain.OAuth2Client) *OAuth2ClientGetByIDResponse {
 	return &OAuth2ClientGetByIDResponse{
-		Client: resource.NewOAuth2Client(ctx, client),
+		Client: resource.NewOAuth2ClientWithFilter(ctx, client),
 	}
 }
 
@@ -63,11 +62,15 @@ type OAuth2ClientValidateRequest struct {
 	ClientID                snowflake.ID
 	ClientSecret            string
 	Scope                   string
-	ConfidentialRequirement enumdef.ConfidentialRequirementType
+	ConfidentialRequirement enumdef.OAuth2ClientConfidentialRequirement
 }
 
-type OAuth2ClientValidateResponse struct{}
+type OAuth2ClientValidateResponse struct {
+	*resource.OAuth2Client
+}
 
-func NewOAuth2ClientValidateResponse() *OAuth2ClientValidateResponse {
-	return &OAuth2ClientValidateResponse{}
+func NewOAuth2ClientValidateResponse(ctx context.Context, client *domain.OAuth2Client) *OAuth2ClientValidateResponse {
+	return &OAuth2ClientValidateResponse{
+		OAuth2Client: resource.NewOAuth2ClientWithFilter(ctx, client),
+	}
 }
