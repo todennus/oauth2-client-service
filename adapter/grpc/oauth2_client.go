@@ -49,7 +49,7 @@ func (s *OAuth2ClientServer) Validate(ctx context.Context, req *pbdto.OAuth2Clie
 	resp, err := s.oauth2ClientUsecase.Validate(ctx, ucreq)
 
 	return response.NewGRPCResponseHandler(ctx, conversion.NewUsecaseOAuth2ValidateResponse(resp), err).
-		Map(codes.InvalidArgument, errordef.ErrRequestInvalid).
+		Map(codes.InvalidArgument, errordef.ErrRequestInvalid, errordef.ErrClientInvalidType).
 		Map(codes.PermissionDenied, errordef.ErrCredentialsInvalid).
 		Map(codes.NotFound, errordef.ErrNotFound).
 		Finalize(ctx)

@@ -22,9 +22,9 @@ func NewPbOAuth2Client(client *ucresource.OAuth2Client) *pbresource.OAuth2Client
 
 func NewUsecaseOAuth2ValidateRequest(req *pbdto.OAuth2ClientValidateRequest) *ucdto.OAuth2ClientValidateRequest {
 	return &ucdto.OAuth2ClientValidateRequest{
-		ClientID:                snowflake.ID(req.ClientId),
-		ClientSecret:            req.ClientSecret,
-		ConfidentialRequirement: enumdef.OAuth2ClientConfidentialRequirementTypeFromGRPC(req.Requirement),
+		ClientID:                snowflake.ID(req.GetClientId()),
+		ClientSecret:            req.GetClientSecret(),
+		ConfidentialRequirement: enumdef.OAuth2ClientConfidentialRequirementTypeFromGRPC(req.GetRequirement()),
 	}
 }
 
@@ -40,7 +40,7 @@ func NewUsecaseOAuth2ValidateResponse(resp *ucdto.OAuth2ClientValidateResponse) 
 
 func NewUsecaseOAuth2GetByIDRequest(req *pbdto.OAuth2ClientGetByIDRequest) *ucdto.OAuth2ClientGetByIDRequest {
 	return &ucdto.OAuth2ClientGetByIDRequest{
-		ClientID: snowflake.ID(req.ClientId),
+		ClientID: snowflake.ID(req.GetClientId()),
 	}
 }
 
