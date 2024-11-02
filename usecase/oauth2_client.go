@@ -44,10 +44,6 @@ func (usecase *OAuth2ClientUsecase) Create(
 	ctx context.Context,
 	req *dto.OAuth2ClientCreateRequest,
 ) (*dto.OAuth2ClientCreateResponse, error) {
-	if xcontext.RequestSubjectType(ctx) != enumdef.SubjectUser {
-		return nil, xerror.Enrich(errordef.ErrForbidden, "only allow creating client by user token")
-	}
-
 	scopeRequirement := scopedef.Eval(xcontext.Scope(ctx)).RequireAdmin(scopedef.AdminCreateClient)
 	if !req.IsAdmin {
 		scopeRequirement = scopeRequirement.RequireAnyUser(scopedef.UserCreateClient)
@@ -55,6 +51,10 @@ func (usecase *OAuth2ClientUsecase) Create(
 
 	if scopeRequirement.IsUnsatisfied() {
 		return nil, xerror.Enrich(errordef.ErrForbidden, "insufficient scope")
+	}
+
+	if xcontext.RequestSubjectType(ctx) != enumdef.SubjectUser {
+		return nil, xerror.Enrich(errordef.ErrForbidden, "allow client creation only with a user token")
 	}
 
 	userID := xcontext.RequestSubjectID(ctx)
@@ -150,7 +150,7 @@ func (usecase *OAuth2ClientUsecase) Validate(
 	if err != nil {
 		return nil, errordef.DomainWrapper.Event(err, "failed-to-validate-client").
 			Enrich(errordef.ErrCredentialsInvalid).If(domain.ErrMismatchedPassword).
-			Enrich(errordef.ErrOAuth2ClientInvalid).If(domain.ErrClientInvalid).
+			Enrich(errordef.ErrClientInvalidType).If(domain.ErrClientInvalid).
 			Error()
 	}
 

@@ -50,7 +50,7 @@ func (a *OAuth2ClientAdapter) Get() http.HandlerFunc {
 		resp, err := a.oauth2ClientUsecase.GetByID(ctx, req.To())
 		response.NewRESTResponseHandler(ctx, dto.NewOAuth2ClientGetByIDResponse(resp), err).
 			Map(http.StatusBadRequest, errordef.ErrRequestInvalid).
-			Map(http.StatusNotFound, errordef.ErrOAuth2ClientInvalid).
+			Map(http.StatusNotFound, errordef.ErrNotFound).
 			WriteHTTPResponse(ctx, w)
 	}
 }
