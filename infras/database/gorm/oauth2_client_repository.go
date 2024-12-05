@@ -6,6 +6,7 @@ import (
 	"github.com/todennus/oauth2-client-service/domain"
 	"github.com/todennus/oauth2-client-service/infras/database/model"
 	"github.com/todennus/shared/errordef"
+	"github.com/todennus/shared/xcontext"
 	"github.com/xybor-x/snowflake"
 	"gorm.io/gorm"
 )
@@ -20,12 +21,12 @@ func NewOAuth2ClientRepository(db *gorm.DB) *OAuth2ClientRepository {
 
 func (repo *OAuth2ClientRepository) Create(ctx context.Context, client *domain.OAuth2Client) error {
 	model := model.NewOAuth2Client(client)
-	return errordef.ConvertGormError(repo.db.WithContext(ctx).Create(&model).Error)
+	return errordef.ConvertGormError(xcontext.DB(ctx, repo.db).Create(&model).Error)
 }
 
 func (repo *OAuth2ClientRepository) GetByID(ctx context.Context, clientID snowflake.ID) (*domain.OAuth2Client, error) {
 	model := model.OAuth2ClientModel{}
-	if err := repo.db.WithContext(ctx).Take(&model, "id=?", clientID).Error; err != nil {
+	if err := xcontext.DB(ctx, repo.db).Take(&model, "id=?", clientID).Error; err != nil {
 		return nil, errordef.ConvertGormError(err)
 	}
 
@@ -34,6 +35,6 @@ func (repo *OAuth2ClientRepository) GetByID(ctx context.Context, clientID snowfl
 
 func (repo *OAuth2ClientRepository) Count(ctx context.Context) (int64, error) {
 	var n int64
-	err := repo.db.WithContext(ctx).Model(&model.OAuth2ClientModel{}).Count(&n).Error
+	err := xcontext.DB(ctx, repo.db).Model(&model.OAuth2ClientModel{}).Count(&n).Error
 	return n, errordef.ConvertGormError(err)
 }
