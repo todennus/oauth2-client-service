@@ -13,10 +13,10 @@ import (
 func NewPbOAuth2Client(client *ucresource.OAuth2Client) *pbresource.OAuth2Client {
 	return &pbresource.OAuth2Client{
 		Id:             client.ClientID.Int64(),
-		Name:           conversion.ConvertPointer(client.Name),
-		OwnerId:        conversion.ConvertPointer(client.OwnerID).Int64(),
-		IsAdmin:        conversion.ConvertPointer(client.IsAdmin),
-		IsConfidential: conversion.ConvertPointer(client.IsConfidential),
+		Name:           conversion.ConvertFromPointer(client.Name),
+		OwnerId:        conversion.ConvertFromPointer(client.OwnerID).Int64(),
+		IsAdmin:        conversion.ConvertFromPointer(client.IsAdmin),
+		IsConfidential: conversion.ConvertFromPointer(client.IsConfidential),
 	}
 }
 
