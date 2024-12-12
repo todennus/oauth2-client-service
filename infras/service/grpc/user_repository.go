@@ -30,5 +30,5 @@ func (repo *UserRepository) Validate(ctx context.Context, username string, passw
 		return nil, errordef.ConvertGRPCError(err)
 	}
 
-	return NewUser(resp.User), nil
+	return NewUser(resp.User)
 }
